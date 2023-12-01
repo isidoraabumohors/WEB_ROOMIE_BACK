@@ -10,6 +10,10 @@ module.exports = {
       bcrypt.hash('Example.123!', saltRounds),
     ]);
 
+    const admin_password = await Promise.all([
+      bcrypt.hash('Admin.123!', saltRounds),
+    ]);
+
     const users = [
       {
         username: 'Amelia',
@@ -88,6 +92,16 @@ module.exports = {
         age: 45,
         bio: 'Hola! Soy María. Me gusta cocinar, leer y escuchar música. Estoy en búsqueda de alguien con mis mismos gustos para compartir una casa o departamento.',
         photo: 'https://img.freepik.com/vector-premium/perfil-avatar-mujer-icono-redondo_24640-14047.jpg',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },      
+      {
+        username: 'ADMINISTRADOR',
+        password: admin_password[0],
+        email: 'administrador@uc.cl',
+        age: null,
+        bio: 'ADMINISTRADOR',
+        photo: 'https://t4.ftcdn.net/jpg/04/75/00/99/360_F_475009987_zwsk4c77x3cTpcI3W1C1LU4pOSyPKaqi.jpg',
         createdAt: new Date(),
         updatedAt: new Date()
       }

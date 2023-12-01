@@ -90,23 +90,30 @@ ctx.status = 200;
 
 })
 
+
+
 // Admin Login
 router.post("authentication.adminLogin", "/admin-login", async (ctx) => {
-    const authInfo = ctx.request.body;
-    const validPassword = await bcrypt.compare(authInfo.password, process.env.ADMIN_PASSWORD);
+    let user;
+    const authInfo = ctx.request.body
+    try {
+        user = await ctx.orm.User.findOne({ where: { email: "administrador@uc.cl" } });
+    }
+    catch(error) {
+        ctx.body = error;
+        ctx.status = 400;
+        return;
+    }
+    if (!user) {
+        ctx.body = `No se encontró el usuario administrador.`;
+        ctx.status = 400;
+        return;
+    }
+    const validPassword = await bcrypt.compare(authInfo.password, user.password);
     if (validPassword) {
-        const expirationSeconds = 1 * 60 * 60 * 24; // Dura 1 día (tiempo en segundos)
-        const JWT_PRIVATE_KEY = process.env.JWT_SECRET;
-        const token = jwt.sign(
-            { scope: ['admin'] },
-            JWT_PRIVATE_KEY,
-            { subject: "admin" },
-            { expiresIn: expirationSeconds }
-        );
         ctx.body = {
-            "access_token": token,
-            "token_type": "Bearer",
-            "expires_in": expirationSeconds,
+            username: user.username,
+            email: user.email,
         };
         ctx.status = 200;
     } else {
@@ -114,6 +121,47 @@ router.post("authentication.adminLogin", "/admin-login", async (ctx) => {
         ctx.status = 400;
         return;
     }
-});
+
+// JWT
+const expirationSeconds = 1 * 60 * 60 * 24; // Dura 1 día (tiempo en segundos)
+const JWT_PRIVATE_KEY = process.env.JWT_SECRET;
+var token = jwt.sign(
+    { scope: ['admin'] },
+    JWT_PRIVATE_KEY,
+    { subject: "admin" },
+    { expiresIn: expirationSeconds }
+);
+ctx.body = {
+"access_token": token,
+"token_type": "Bearer",
+"expires_in": expirationSeconds,
+}
+ctx.status = 200;
+
+})
+
+//     const authInfo = ctx.request.body;
+//     const validPassword = await bcrypt.compare(authInfo.password, process.env.ADMIN_PASSWORD);
+//     if (validPassword) {
+//         const expirationSeconds = 1 * 60 * 60 * 24; // Dura 1 día (tiempo en segundos)
+//         const JWT_PRIVATE_KEY = process.env.JWT_SECRET;
+//         const token = jwt.sign(
+//             { scope: ['admin'] },
+//             JWT_PRIVATE_KEY,
+//             { subject: "admin" },
+//             { expiresIn: expirationSeconds }
+//         );
+//         ctx.body = {
+//             "access_token": token,
+//             "token_type": "Bearer",
+//             "expires_in": expirationSeconds,
+//         };
+//         ctx.status = 200;
+//     } else {
+//         ctx.body = "Contraseña incorrecta";
+//         ctx.status = 400;
+//         return;
+//     }
+// });
 
 module.exports = router;
